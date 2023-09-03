@@ -4,17 +4,15 @@ const socket = io()
 const scoreEl = document.querySelector('#scoreEl')
 const devicePixelRatio = window.devicePixelRatio || 1
 
-canvas.width = innerWidth
-canvas.height = innerHeight
+canvas.width = 1024
+canvas.height = 576
 const x = canvas.width / 2
-const y = canvas.height / 2
+const y = canvas.height / 2 
+
+// c.scale(devicePixelRatio, devicePixelRatio)
 
 const frontEndPlayers = {}
 const frontEndProjectiles = {}
-
-socket.on('connect', () => {
-  socket.emit('initCanvas', {width: canvas.width, height: canvas.height, devicePixelRatio})
-})
 
 socket.on('updateProjectiles', (backEndProjectiles) => {
   for (const id in backEndProjectiles) {
@@ -51,22 +49,29 @@ socket.on('updatePlayers', (backEndPlayers) => {
         x: backEndPlayer.x,
         y: backEndPlayer.y,
         radius: 10,
-        color: backEndPlayer.color
+        color: backEndPlayer.color,
+        username: backEndPlayer.username
       })
 
-      document.querySelector('#playerLabels').innerHTML += `<div data-id="${id}" data-score="${backEndPlayer.score}">${id}: ${backEndPlayer.score}</div>`
+      document.querySelector('#playerLabels').innerHTML += `<div data-id="${id}" data-score="${backEndPlayer.score}">${backEndPlayer.username}: ${backEndPlayer.score}</div>`
     } else {
-
       // sort leaderboard
-      document.querySelector(`div[data-id="${id}"]`).innerHTML = `${id}: ${backEndPlayer.score}`
+      document.querySelector(`div[data-id="${id}"]`).innerHTML = `${backEndPlayer.username}: ${backEndPlayer.score}`
       document.querySelector(`div[data-id="${id}"]`).setAttribute('data-score', backEndPlayer.score)
-      const childDivs = Array.from(document.querySelector('#playerLabels').querySelectorAll('div'))
+
+      const parentDiv = document.querySelector('#playerLabels')
+      const childDivs = Array.from(parentDiv.querySelectorAll('div'))
 
       childDivs.sort((a, b) => {
         const scoreA = Number(a.getAttribute('data-score'))
         const scoreB = Number(b.getAttribute('data-score'))
-
         return scoreB - scoreA
+      })
+      childDivs.forEach(div => {
+        div.remove()
+      })
+      childDivs.forEach(div => {
+        parentDiv.append(div)
       })
 
       if (id === socket.id) {
@@ -100,9 +105,10 @@ socket.on('updatePlayers', (backEndPlayers) => {
     if (!backEndPlayers[id]) {
       //remove player score label
       document.querySelector(`div[data-id="${id}"]`).remove()
-
+      if (id === socket.id) {
+        document.querySelector('form').style.display = 'block';
+      }
       delete frontEndPlayers[id]
-
     }
   }
 })
@@ -111,8 +117,7 @@ let animationId
 let score = 0
 function animate() {
   animationId = requestAnimationFrame(animate)
-  c.fillStyle = 'rgba(0, 0, 0, 0.1)'
-  c.fillRect(0, 0, canvas.width, canvas.height)
+  c.clearRect(0, 0, canvas.width, canvas.height)
 
   for (const id in frontEndPlayers) {
     const frontEndPlayer = frontEndPlayers[id]
@@ -123,27 +128,14 @@ function animate() {
     const frontEndProjectile = frontEndProjectiles[id]
     frontEndProjectile.draw()
   }
-
-  // for (let i = frontEndProjectiles.length - 1; i >=0; i--) {
-  //   const frontEndProjectile = frontEndProjectiles[i]
-  //   frontEndProjectile.update()
-  // }
 }
 animate()
 
 const keys = {
-  w: {
-    pressed: false
-  },
-  a: {
-    pressed: false
-  },
-  s: {
-    pressed: false
-  },
-  d: {
-    pressed: false
-  },
+  w: {pressed: false},
+  a: {pressed: false},
+  s: {pressed: false},
+  d: {pressed: false},
 }
 const SPEED = 10
 const playerInputs = []
@@ -178,7 +170,6 @@ setInterval(() => {
   }
   
 }, 15)
-
 window.addEventListener('keydown', (e) => {
   if (!frontEndPlayers[socket.id]) return
   switch (e.code) {
@@ -212,4 +203,15 @@ window.addEventListener('keyup', (e) => {
       keys.d.pressed = false
       break
   }
+})
+
+document.querySelector('form').addEventListener('submit', (e) => {
+  e.preventDefault()
+  document.querySelector('form').style.display = 'none'
+  socket.emit('initGame', {
+    username: e.target.querySelector('input').value,
+    width: canvas.width,
+    height: canvas.height,
+    devicePixelRatio
+})
 })

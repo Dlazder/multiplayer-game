@@ -3,14 +3,22 @@
 }
 body {
     margin: 0;
+    height: 100vh;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(36, 25, 39);
 }
 canvas {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+    width: 1024px;
+    height: 576px;
+    background-image: url('./img/repeated-square-dark.webp');
+    background-size: 400px;
 }
-
 .wrapper {
     position: absolute;
     color: white;
@@ -20,7 +28,42 @@ canvas {
     user-select: none;
     background-color: rgba(0, 0, 0, .5);
 }
-
 .leader-board {
     margin-bottom: 8px;
+}
+
+input::placeholder {
+    color: #94a3b8;
+}
+
+form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+form input {
+    padding: 12px;
+    border-radius: 20px;
+    border: none;
+    background: #475569;
+    color: #cbd5e1;
+    display: block;
+}
+
+form button {
+    padding: 8px 20px;
+    border-radius: 100px;
+    border: none;
+    background-image: linear-gradient(to right,rgb(6, 182, 212),rgb(59, 130, 246));
+    color: white;
+    cursor: pointer;
+    display: block;
+    text-align: center;
+    margin-top: 8px;
 }
